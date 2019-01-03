@@ -15,7 +15,7 @@ beforeEach( async () => {
     inbox = await new web3.eth.Contract(JSON.parse(interface))
     .deploy ({
         data: bytecode,
-        arguments: ["hi there"]
+        arguments: ["Hi there"]
     })
     // la transacción tiene parámetros extra
     .send ({ from: accounts[0], gas: "1000000"});
