@@ -34,6 +34,28 @@ d) comprobar versión de node, npm, yarn
 e) terminal : npm init . package name: inbox. genera pakage.json
 f) terminal: yarn add --dev mocha
 g) terminal: yarn add --dev solc  =>  instala el compilador de solidity
-9
+
+Procedimientos de test
+ejecutar yarn test
+
+Añadir en package.json scripts
+"scripts": {
+    "test": "mocha --exit",
+    "deploy": "node deploy.js"
+  },
+  
+ La versión de compilador de Solidity
+ "devDependencies": {
+    "mocha": "^4.25.0"
+  },
+  
+  Desinstalación y reinstalación de todos los paquetes
+  En terminal:
+  rm -rf node_modules/
+  yarn install
+  
+  
+
+
 
 
