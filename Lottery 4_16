@@ -1,0 +1,112 @@
+pragma solidity ^0.4.25;
+//pragma experimental "ABIEncoderv2"; // NO recomendado
+contract Lottery {
+    
+    // Definimos una estructura útil dentro de nuestro smart contract para operar xe sistema votaciones
+    struct Player {
+        address wallet;// variable internas no tengo que especificar si es publico o privado
+        string name;
+    }
+    
+    address public manager;
+    mapping ( address => Player) public playersMap;
+    mapping ( uint => address) private addressesMap;
+   // Player[] private players; // Cambiamos el array por un mapping
+    Player private winner;
+    uint public numPlayers; // puesto que el maping no tienen lenght implementamos un contador manual
+    
+    modifier restrinctedPickWinner(){
+        require (msg.sender == manager);
+        require (numPlayers > 0 );
+        require (winner.wallet == 0x0); // si ya existe un ganador no ejecutes pickWinner
+        
+        _;
+    }
+    
+    constructor () public {
+        manager = msg.sender; // Quien desplieaga el contrato será el manager.
+        numPlayers = 0; // inicializamos contador de Players en el maping
+    }
+    
+    // quien entre a la lotería deberá pagar
+    function enter(string _name) public payable {
+        // sólo se ejecuta si entramos con más de 0.1 ether.
+        require (msg.value > 0.1 ether);
+        require (playersMap[msg.sender].wallet == 0x0); // Si la direccion no esta mapeada retorna 0x0 por defecto
+
+//      bool isPlayer = false;
+        
+//        for (uint i=0; i < players.length; i++){
+            // compara la direccion del candidato con cada dirección del array de players
+            // si es igual la igualdad es  True y la función OR inicializa a true isPlayer.
+            // queda en true y no se hace el push de la nueva direccion
+//            isPlayer = isPlayer || (msg.sender == players[i].wallet);
+//       }
+       // if (!isPlayer) {
+//        require (!isPlayer);
+        
+        Player memory newPlayer = Player({
+            wallet: msg.sender,
+            name: _name
+        });
+        
+        // variables tipo storage que modifican el blockchain
+        //Player storage aux = players[1]
+        //aux.name = "sample"
+        //o bien players[1]= "sample"
+        
+//      players.push (newPlayer); // No es necesario un push con el mapping
+        playersMap[msg.sender] = newPlayer;
+        numPlayers++; // se incrememnta en una unidad
+        addressesMap[numPlayers] = msg.sender;
+    } 
+
+    // retorna la dirección del ganador
+    function pickWinner() public  restrinctedPickWinner returns(address) {
+        // evitamos el if else con require
+        // si el require no se cumple la transación en blockchain da un error
+        // y no se ejecuta . Es el comportamiento deseado.
+       // require ( msg.sender == manager);
+        
+        address aux = addressesMap[random() % numPlayers];
+        winner = playersMap[aux]; // el número aleatorio modulo número de jugadores
+        
+        winner.wallet.transfer (address(this).balance);
+        
+        return winner.wallet;
+ 
+ /*   if  (msg.sender == manager) {
+        winner = players[random()];
+        return winner;
+        } else {
+            return 0x0;
+        }
+*/ 
+    }
+    
+    // random es privda puesto que no es necesario que nadie pueda
+    // acceder para ejecutarlo
+    function random() private view returns (uint) {
+        return uint (keccak256 (block.difficulty,now, numPlayers, manager));
+    }
+    
+//   function getPlayers() public view returns (address[]) {
+//       return players;
+//  }
+
+    function getWinner() public view returns ( address,string) {
+        return (winner.wallet, winner.name);
+    }
+    
+    function getPlayers(uint index) public view returns(address){ // seria realmente get el player index
+//       return players[index].wallet;
+        address aux = addressesMap[index];
+        return playersMap[aux].wallet;
+
+    }
+    
+    function getBalance() public view returns(uint) {
+        return address(this).balance; // retorna el balance del smart contrcat. función this accede a Scontract
+    }
+    
+}
